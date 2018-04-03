@@ -42,7 +42,11 @@ ui <- fluidPage(theme = shinytheme("united"),
                                 selectInput("shiftInput", "Police Shift",
                                             choices = sort(unique(incidents$SHIFT)),
                                             selected = sort(unique(incidents$SHIFT)),
-                                            multiple = TRUE)
+                                            multiple = TRUE),
+                                selectInput('background', 'Background',
+                                            choices = providers,
+                                            multiple = FALSE,
+                                            selected = 'Stamen.Terrain')
                 ),
                 
                 column(8,
@@ -94,8 +98,6 @@ server <- function(input, output, session) {
           filter(SHIFT %in% selected_shift)
       }
     }
-    
-    message('Filtered data has ', nrow(out), ' rows.')
     return(out)
   })
   
@@ -110,7 +112,7 @@ server <- function(input, output, session) {
       
       l <- 
         leaflet(data = df) %>% 
-        addProviderTiles(providers$Stamen.Toner) %>% 
+        addProviderTiles(input$background) %>% 
         setView(-77.0369, 38.9072, zoom = 12)
       
       message(nrow(df), ' crimes filtered.')
@@ -129,13 +131,15 @@ server <- function(input, output, session) {
                    radius = 20, opacity = 0.9) %>%
         addLegendCustom(colors = color_vector, 
                         labels = color_labels, sizes = rep(20, length(color_vector)),
-                        position = 'bottomright')
+                        position = 'bottomright',
+                        opacity = 0.9,
+                        title = 'Offense type')
       
     } else {
       message('No crimes with current filter settings.')
       l <- l <- 
         leaflet() %>% 
-        addProviderTiles(providers$Stamen.Toner) %>% 
+        addProviderTiles(input$background) %>% 
         setView(-77.0369, 38.9072, zoom = 12)
     }
     return(l)
